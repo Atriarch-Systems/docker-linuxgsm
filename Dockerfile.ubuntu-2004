@@ -1,15 +1,21 @@
 #
 # LinuxGSM Base Dockerfile
 #
-# https://github.com/Demonslyr/docker-linuxgsm
+# Original: https://github.com/GameServerManagers/docker-linuxgsm
+# Fork: https://github.com/Atriarch-Systems/docker-linuxgsm
+#
+# Original Copyright (c) LinuxGSM <me@danielgibbs.co.uk>
+# Modifications Copyright (c) Atriarch Systems <postmaster@mail.atriarch.systems>
 #
 
 FROM docker.atriarch.systems/steamcmd:ubuntu-20.04
 
-LABEL maintainer="Atriarch Systems <postmaster@mail.atriarch.systems>"
+LABEL maintainer="LinuxGSM <me@danielgibbs.co.uk>"
+LABEL maintainer.fork="Atriarch Systems <postmaster@mail.atriarch.systems>"
 ENV DEBIAN_FRONTEND noninteractive
 ENV TERM=xterm
-ENV LGSM_GITHUBUSER=Demonslyr
+# Use Atriarch-Systems fork and atriarch branch
+ENV LGSM_GITHUBUSER=Atriarch-Systems
 ENV LGSM_GITHUBREPO=LinuxGSM
 ENV LGSM_GITHUBBRANCH=atriarch
 ENV LGSM_LOGDIR=/data/log
@@ -53,7 +59,7 @@ RUN echo "**** Install Base LinuxGSM Requirements ****" \
   jq \
   lib32gcc-s1 \
   lib32stdc++6 \
-  netcat \
+  netcat-openbsd \
   pigz \
   python3 \
   sudo \
@@ -112,15 +118,16 @@ RUN echo "**** Add linuxgsm user ****" \
 
 HEALTHCHECK --interval=1m --timeout=1m --start-period=2m --retries=1 CMD /app/entrypoint-healthcheck.sh || exit 1
 
-## Download linuxgsm.sh
+## Download linuxgsm.sh from Atriarch CDN (with fallback to GitHub)
 RUN echo "**** Download linuxgsm.sh ****" \
   && set -ex \
-  && curl -Lo linuxgsm.sh "https://raw.githubusercontent.com/Demonslyr/LinuxGSM/${LGSM_GITHUBBRANCH}/linuxgsm.sh" \
+  && curl -Lo linuxgsm.sh "https://cdn.atriarch.systems/lgsm/linuxgsm.sh" \
+  || curl -Lo linuxgsm.sh "https://raw.githubusercontent.com/${LGSM_GITHUBUSER}/${LGSM_GITHUBREPO}/${LGSM_GITHUBBRANCH}/linuxgsm.sh" \
   && chmod +x linuxgsm.sh
 
 RUN echo "**** Get LinuxGSM Modules ****" \
-  && git clone --filter=blob:none --no-checkout --sparse https://github.com/Demonslyr/LinuxGSM.git \
-  && cd LinuxGSM \
+  && git clone --filter=blob:none --no-checkout --sparse https://github.com/${LGSM_GITHUBUSER}/${LGSM_GITHUBREPO}.git \
+  && cd ${LGSM_GITHUBREPO} \
   && git sparse-checkout set --cone \
   && git sparse-checkout set lgsm/modules \
   && git checkout ${LGSM_GITHUBBRANCH} \
@@ -128,7 +135,7 @@ RUN echo "**** Get LinuxGSM Modules ****" \
   && mv lgsm/modules/* /app/lgsm/modules \
   && chmod +x /app/lgsm/modules/* \
   && cd ../ \
-  && rm -rf LinuxGSM \
+  && rm -rf ${LGSM_GITHUBREPO} \
   && chown -R $USER:$USER /app
 
 ARG CACHEBUST=1
