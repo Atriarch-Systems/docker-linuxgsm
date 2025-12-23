@@ -1,6 +1,5 @@
 name: Build and Push LinuxGSM Images (Atriarch)
 # Builds and pushes LinuxGSM images to Atriarch Nexus registry
-# Uses Atriarch-Systems/LinuxGSM atriarch branch for scripts
 # Triggers downstream docker-gameserver rebuild when complete
 
 on:
@@ -8,8 +7,9 @@ on:
     branches: [atriarch]
     paths:
       - 'Dockerfile*'
-      - 'entrypoint*.sh'
   workflow_dispatch:
+  repository_dispatch:
+    types: [steamcmd-updated]
 
 jobs:
   build-ubuntu-2404:
@@ -38,9 +38,13 @@ jobs:
           file: ./Dockerfile.ubuntu-2404
           platforms: linux/amd64
           push: true
+          build-args: |
+            BASE_IMAGE=${{ secrets.DOCKER_REGISTRY }}/steamcmd:ubuntu-24.04
           tags: |
             ${{ secrets.DOCKER_REGISTRY }}/linuxgsm:latest
             ${{ secrets.DOCKER_REGISTRY }}/linuxgsm:ubuntu-24.04
+          cache-from: type=registry,ref=${{ secrets.DOCKER_REGISTRY }}/linuxgsm:cache-ubuntu-24.04
+          cache-to: type=registry,ref=${{ secrets.DOCKER_REGISTRY }}/linuxgsm:cache-ubuntu-24.04,mode=max
 
   build-ubuntu-2204:
     name: Build Ubuntu 22.04
@@ -68,8 +72,12 @@ jobs:
           file: ./Dockerfile.ubuntu-2204
           platforms: linux/amd64
           push: true
+          build-args: |
+            BASE_IMAGE=${{ secrets.DOCKER_REGISTRY }}/steamcmd:ubuntu-22.04
           tags: |
             ${{ secrets.DOCKER_REGISTRY }}/linuxgsm:ubuntu-22.04
+          cache-from: type=registry,ref=${{ secrets.DOCKER_REGISTRY }}/linuxgsm:cache-ubuntu-22.04
+          cache-to: type=registry,ref=${{ secrets.DOCKER_REGISTRY }}/linuxgsm:cache-ubuntu-22.04,mode=max
 
   build-ubuntu-2004:
     name: Build Ubuntu 20.04
@@ -97,8 +105,12 @@ jobs:
           file: ./Dockerfile.ubuntu-2004
           platforms: linux/amd64
           push: true
+          build-args: |
+            BASE_IMAGE=${{ secrets.DOCKER_REGISTRY }}/steamcmd:ubuntu-20.04
           tags: |
             ${{ secrets.DOCKER_REGISTRY }}/linuxgsm:ubuntu-20.04
+          cache-from: type=registry,ref=${{ secrets.DOCKER_REGISTRY }}/linuxgsm:cache-ubuntu-20.04
+          cache-to: type=registry,ref=${{ secrets.DOCKER_REGISTRY }}/linuxgsm:cache-ubuntu-20.04,mode=max
 
   trigger-downstream:
     name: Trigger docker-gameserver rebuild
