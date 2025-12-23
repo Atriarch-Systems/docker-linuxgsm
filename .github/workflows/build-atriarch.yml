@@ -38,6 +38,8 @@ jobs:
           file: ./Dockerfile.ubuntu-2404
           platforms: linux/amd64
           push: true
+          provenance: false
+          sbom: false
           build-args: |
             BASE_IMAGE=${{ secrets.DOCKER_REGISTRY }}/steamcmd:ubuntu-24.04
           tags: |
@@ -72,6 +74,8 @@ jobs:
           file: ./Dockerfile.ubuntu-2204
           platforms: linux/amd64
           push: true
+          provenance: false
+          sbom: false
           build-args: |
             BASE_IMAGE=${{ secrets.DOCKER_REGISTRY }}/steamcmd:ubuntu-22.04
           tags: |
@@ -105,6 +109,8 @@ jobs:
           file: ./Dockerfile.ubuntu-2004
           platforms: linux/amd64
           push: true
+          provenance: false
+          sbom: false
           build-args: |
             BASE_IMAGE=${{ secrets.DOCKER_REGISTRY }}/steamcmd:ubuntu-20.04
           tags: |
